@@ -1,6 +1,4 @@
-$AD_list = Get-ADComputer -Filter * | select Name
-$Online_list = @()
-$Offline_list = @()
+$AD_List = Get-ADComputer -Filter * | select Name
 $Results = @()
 
 $Table_Headers = @"
@@ -39,14 +37,14 @@ h1 {
 "@
 
 
-Foreach ($item in $Temp_List) {
+Foreach ($item in $AD_List) {
   Echo "DEBUG: Probing $item.."
   If (Test-Connection -Count 1 -ComputerName "$item" -Quiet)
   {
 		Echo "	DEBUG: $item online..."
-    #$Results += Invoke-Command -ComputerName "$item" -ScriptBlock { }
-    $Online_list += Get-LocalGroupMember -Group "Administrators" |
-    Select @{N="$item";E={$_.Name}}, @{N="Source";E={$_.PrincipalSource}} | ConvertTo-HTML -Fragment -as Table
+    $Results += Invoke-Command -ComputerName "$item" -ScriptBlock { Get-LocalGroupMember -Group "Administrators" |
+    Select @{N="$item";E={$_.Name}}, @{N="Source";E={$_.PrincipalSource}} |
+    ConvertTo-HTML -Fragment -as Table }
   }
   Else
   {
@@ -55,4 +53,4 @@ Foreach ($item in $Temp_List) {
   }
 }
 
-ConvertTo-HTML -Head $Table_Headers -PreContent $Online_list > index.html
+ConvertTo-HTML -Head $Table_Headers -PreContent $Results > index.html
